@@ -3,7 +3,7 @@ type Category = {
   value: number
 }
 
-const categorys: Category[] = [
+const categories: Category[] = [
   {
     label: 'Education',
     value: 1,
@@ -50,6 +50,37 @@ const categorys: Category[] = [
   },
 ]
 
-export { categorys }
+type BaseResponse<T> = {
+  statusCode: number
+  message: string
+  data: T
+}
 
-export type { Category }
+type UploadRequest = FormData
+type UploadResponse = string
+
+type GetURIRequest = {
+  name: string
+  description: string
+  category: number
+  CID: string
+}
+type GetURIResponse = string
+
+type CreateCollectionRequest = {
+  collectionId: number
+  cover: string
+  fileKey: string
+}
+
+export { categories }
+
+export type {
+  Category,
+  BaseResponse,
+  UploadResponse,
+  UploadRequest,
+  GetURIRequest,
+  GetURIResponse,
+  CreateCollectionRequest,
+}

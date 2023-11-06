@@ -73,7 +73,7 @@ class HTTP {
     config?: AxiosRequestConfig
   ) {
     return this.#instance
-      .post<T>(url, data, config)
+      .post(url, data, config)
       .then<[null, T]>((res) => [null, res.data])
       .catch<[U, null]>((err) => [err, null])
   }

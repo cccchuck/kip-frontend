@@ -16,40 +16,49 @@ const Nav = () => {
   }
 
   useEffect(() => {
-    if (location.pathname !== '/') setShowWallet(true)
-  }, [])
+    setShowWallet(location.pathname !== '/')
+  })
 
   return (
     <nav className="kip-nav">
-      <div className="kip-nav__brand">KIP</div>
-      <div className="kip-nav__link">
-        <Link
-          href="/home"
-          color="foreground"
-          className="kip-nav__item"
-          onClick={(e) => handleNavigate(e, 'home')}
-        >
-          Home
-        </Link>
-        <Link
-          href="/explore"
-          color="foreground"
-          className="kip-nav__item"
-          onClick={(e) => handleNavigate(e, 'explore')}
-        >
-          Explore
-        </Link>
-        <Link
-          href="/create"
-          color="foreground"
-          className="kip-nav__item"
-          onClick={(e) => handleNavigate(e, 'create')}
-        >
-          Create
-        </Link>
+      <div className="kip-nav__brand" onClick={(e) => handleNavigate(e, '/')}>
+        KIP
       </div>
+      {showWallet && (
+        <div className="kip-nav__link">
+          <Link
+            href="/home"
+            color="foreground"
+            className="kip-nav__item"
+            onClick={(e) => handleNavigate(e, '/')}
+          >
+            Home
+          </Link>
+          <Link
+            href="/explore"
+            color="foreground"
+            className="kip-nav__item"
+            onClick={(e) => handleNavigate(e, 'explore')}
+          >
+            Explore
+          </Link>
+          <Link
+            href="/create"
+            color="foreground"
+            className="kip-nav__item"
+            onClick={(e) => handleNavigate(e, 'create')}
+          >
+            Create
+          </Link>
+        </div>
+      )}
+
       <div className="kip-nav__funcs">
-        {!showWallet && <Button color="primary">Launch APP</Button>}
+        {!showWallet && (
+          <Button color="primary" onClick={(e) => handleNavigate(e, 'explore')}>
+            Launch APP
+          </Button>
+        )}
         {showWallet && <ConnectButton />}
       </div>
     </nav>
