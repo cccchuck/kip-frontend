@@ -73,6 +73,27 @@ type CreateCollectionRequest = {
   fileKey: string
 }
 
+type GetCollectionsCoverResponse = {
+  id: number
+  cover: string
+}
+
+type GetAnswerRequest = {
+  collectionId: number
+  questionId: number
+  address: string
+  message: string
+  signature: string
+}
+
+type GetAnswerResponse = string
+
+type AskRequest = GetAnswerRequest & {
+  question: string
+}
+
+type AskResponse = string
+
 export { categories }
 
 export type {
@@ -83,4 +104,9 @@ export type {
   GetURIRequest,
   GetURIResponse,
   CreateCollectionRequest,
+  GetCollectionsCoverResponse,
+  GetAnswerRequest,
+  GetAnswerResponse,
+  AskRequest,
+  AskResponse,
 }

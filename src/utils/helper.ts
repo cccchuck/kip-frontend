@@ -10,25 +10,52 @@ export type CollectionTuple = [
 ]
 
 export type Collection = {
-  id: bigint
+  cover?: string
+  id: number
   creator: string
-  supply: bigint
-  price: bigint
-  royalty: bigint
-  category: bigint
-  queryCount: bigint
-  mintCount: bigint
+  supply: number
+  price: number
+  royalty: number
+  category: number
+  queryCount: number
+  mintCount: number
 }
 
 export const buildCollection = (collection: CollectionTuple): Collection => {
   return {
-    id: collection[0],
+    id: parseInt(collection[0].toString(), 10),
     creator: collection[1],
-    supply: collection[2],
-    price: collection[3],
-    royalty: collection[4],
-    category: collection[5],
-    queryCount: collection[6],
-    mintCount: collection[7],
+    supply: parseInt(collection[2].toString(), 10),
+    price: parseInt(collection[3].toString(), 10),
+    royalty: parseInt(collection[4].toString(), 10),
+    category: parseInt(collection[5].toString(), 10),
+    queryCount: parseInt(collection[6].toString(), 10),
+    mintCount: parseInt(collection[7].toString(), 10),
   }
+}
+
+export type QuestionTuple = [bigint, bigint, string, string, string, bigint]
+
+export type Question = {
+  id: number
+  questionId: number
+  question: string
+  queryor: string
+  owner: string
+  time: number
+}
+
+export const buildQueryHistory = (question: QuestionTuple): Question => {
+  return {
+    id: parseInt(question[0].toString(), 10),
+    questionId: parseInt(question[1].toString(), 10),
+    question: question[2],
+    queryor: question[3],
+    owner: question[4],
+    time: parseInt(question[5].toString(), 10),
+  }
+}
+
+export const getMsg = (addr: string) => {
+  return `Please sign in this message to prove you owned the EOA ${addr}`
 }

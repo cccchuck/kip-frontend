@@ -1,6 +1,11 @@
 import {
+  AskRequest,
+  AskResponse,
   BaseResponse,
   CreateCollectionRequest,
+  GetAnswerRequest,
+  GetAnswerResponse,
+  GetCollectionsCoverResponse,
   GetURIRequest,
   GetURIResponse,
   UploadResponse,
@@ -54,4 +59,32 @@ const createCollection = async (data: CreateCollectionRequest) => {
   )
 }
 
-export { uploadFile, uploadCover, getURI, createCollection }
+const getCollectionsCover = async (data: { ids: number[] }) => {
+  return await request.post<BaseResponse<GetCollectionsCoverResponse[]>>(
+    '/collection/getCollectionsCover',
+    data
+  )
+}
+
+const ask = async (data: AskRequest) => {
+  return await request.post<BaseResponse<AskResponse>>('/query/ask', data, {
+    timeout: 20 * 1000,
+  })
+}
+
+const getAnswer = async (data: GetAnswerRequest) => {
+  return await request.post<BaseResponse<GetAnswerResponse>>(
+    '/query/getAnswer',
+    data
+  )
+}
+
+export {
+  uploadFile,
+  uploadCover,
+  getURI,
+  createCollection,
+  getCollectionsCover,
+  ask,
+  getAnswer,
+}

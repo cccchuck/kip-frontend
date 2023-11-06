@@ -9,16 +9,26 @@ import {
   Spacer,
   Textarea,
 } from '@nextui-org/react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { categories, createCollectionABI, queryRoyalties } from './config'
 import { createCollection, getURI } from '@/api'
 import { parseEther, parseUnits } from 'ethers'
-import { useAccount, useContractWrite, usePrepareContractWrite } from 'wagmi'
+import {
+  useAccount,
+  useContractWrite,
+  usePrepareContractWrite,
+  useSwitchNetwork,
+} from 'wagmi'
 import { KIPAddress } from '@/config'
 import { CONTRACT_MAP } from '@/web3'
 
 const Create = () => {
   const { address } = useAccount()
+  const { switchNetwork } = useSwitchNetwork()
+
+  useEffect(() => {
+    switchNetwork?.(11155111)
+  }, [])
 
   const [name, setName] = useState('')
   const [supply, setSupply] = useState('')
