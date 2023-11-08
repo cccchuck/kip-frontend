@@ -26,17 +26,13 @@ import {
   getMsg,
 } from '@/utils/helper'
 import { formatUnits, parseUnits } from 'ethers'
-import {
-  useAccount,
-  useContractWrite,
-  usePrepareContractWrite,
-  useSignMessage,
-  useSwitchNetwork,
-  useWaitForTransaction,
-} from 'wagmi'
-import { KIPQueryAddress, KIPTokenAddress } from '@/config'
-import { approveABI, queryABI, withdrawABI } from './config'
-import { ask, getAnswer } from '@/api'
+import { useAccount, useSignMessage, useSwitchNetwork } from 'wagmi'
+import { KIPQueryAddress } from '@/config'
+import { ask, getAnswer, getAnswerURI, getCanAsk } from '@/api'
+import { useWithdraw } from './hooks/useWithdraw'
+import { useApprove } from './hooks/useApprove'
+import { useQuery } from './hooks/useQuery'
+import { useMint } from './hooks/useMint'
 
 type Metadata = {
   name: string
@@ -46,18 +42,28 @@ type Metadata = {
 
 type CollectionWithMetadata = Metadata & Collection
 
-type QueryHistoryItemProps = Question
+type QueryHistoryItemProps = Question & {
+  onMint: () => void
+}
 
 const QueryHistoryItem = ({
-  id: collectionId,
   questionId,
   question,
   time,
+  isMint,
+  onMint,
 }: QueryHistoryItemProps) => {
   const [answer, setAnswer] = useState('')
+  const [loading, setLoading] = useState(false)
   const { data, signMessage } = useSignMessage()
   const { address } = useAccount()
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const { writeWithSetURI, isSuccess, isLoading } = useMint(
+    questionId,
+    address!
+  )
+
+  useEffect(() => {})
 
   const handleGetAnswer = async () => {
     if (address) {
@@ -66,10 +72,21 @@ const QueryHistoryItem = ({
     }
   }
 
+  const handleMint = async () => {
+    setLoading(true)
+    const [err, res] = await getAnswerURI({ name: question })
+    if (!err && res.data) {
+      writeWithSetURI(res.data)
+    } else {
+      window.alert('Get info failed, try again.')
+      setLoading(false)
+      return
+    }
+  }
+
   useEffect(() => {
     if (data) {
       getAnswer({
-        collectionId,
         questionId,
         address: address!,
         message: getMsg(address!),
@@ -84,6 +101,13 @@ const QueryHistoryItem = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
+  useEffect(() => {
+    if (isSuccess) {
+      onMint()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess])
+
   return (
     <div className="kip-query-item">
       <div className="kip-query__info">
@@ -96,6 +120,17 @@ const QueryHistoryItem = ({
             View answer
           </Link>
         </div>
+      </div>
+      <div className="kip-query__func">
+        {!isMint && (
+          <Button
+            color="primary"
+            isLoading={loading || isLoading}
+            onClick={handleMint}
+          >
+            Mint
+          </Button>
+        )}
       </div>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalContent>
@@ -116,65 +151,58 @@ const QueryHistoryItem = ({
 }
 
 const Detail = () => {
-  const [balance, setBalance] = useState('')
-  const [allowance, setAllowance] = useState('')
-  const [withdrawAmount, setWithdrawAmount] = useState('')
-  const [question, setQuestion] = useState('')
-  const [hasPaid, setHasPaid] = useState(false)
-  const [collection, setCollection] = useState<CollectionWithMetadata>()
-  const [questions, setQuestions] = useState<Question[]>()
+  // Query form
   const [questionId, setQuestionId] = useState(0)
   const [answer, setAnswer] = useState('')
   const [askIsLoading, setAskIsLoading] = useState(false)
-  const { data: signature, signMessage } = useSignMessage({
-    message: question,
-  })
-  const { isOpen, onOpen, onClose } = useDisclosure()
+
+  const [canAskQuestion, setCanAskQuestion] = useState('')
+  const [approved, setApproved] = useState(false)
+  const [paid, setPaid] = useState(false)
+
+  // User info
   const { address } = useAccount()
+  const [balance, setBalance] = useState(0n)
+
+  // Collection info
+  const [collection, setCollection] = useState<CollectionWithMetadata>()
+  const [questions, setQuestions] = useState<Question[]>()
+
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const { switchNetwork } = useSwitchNetwork()
 
+  const {
+    withdrawAmount,
+    setWithdrawAmount,
+    write: withdrawWrite,
+    isSuccess: withdrawIsSuccess,
+    isLoading: withdrawIsLoading,
+  } = useWithdraw()
+
+  const {
+    setAllowanceAmount,
+    write: approveWrite,
+    isSuccess: approveIsSuccess,
+    isLoading: approveIsLoading,
+  } = useApprove()
+
+  const {
+    question,
+    setQuestion,
+    write: queryWrite,
+    isSuccess: queryIsSuccess,
+    isLoading: queryIsLoading,
+  } = useQuery(0)
+
+  const { data: signature, signMessage } = useSignMessage({
+    message: question,
+  })
+
   useEffect(() => {
     switchNetwork?.(80001)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const { config } = usePrepareContractWrite({
-    address: KIPQueryAddress,
-    abi: withdrawABI,
-    functionName: 'withdraw',
-    args: [parseUnits(withdrawAmount || '0', 18)],
-  })
-
-  const { config: approveConfig } = usePrepareContractWrite({
-    address: KIPTokenAddress,
-    abi: approveABI,
-    functionName: 'approve',
-    args: [KIPQueryAddress, BigInt(collection?.price || '0')],
-  })
-
-  const { config: queryConfig } = usePrepareContractWrite({
-    address: KIPQueryAddress,
-    abi: queryABI,
-    functionName: 'query',
-    args: [BigInt(collection?.id || '0'), question],
-  })
-
-  const { data, write } = useContractWrite(config)
-  const { data: approveData, write: approveWrite } =
-    useContractWrite(approveConfig)
-  const { data: queryData, write: queryWrite } = useContractWrite(queryConfig)
-
-  const { isLoading, isSuccess } = useWaitForTransaction({
-    hash: data?.hash,
-  })
-  const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } =
-    useWaitForTransaction({
-      hash: approveData?.hash,
-    })
-  const { isLoading: queryIsLoading, isSuccess: queryIsSuccess } =
-    useWaitForTransaction({
-      hash: queryData?.hash,
-    })
 
   const parseSearch = () => {
     const search = window.location.search
@@ -194,16 +222,34 @@ const Detail = () => {
       handleGetQueryHistory(id),
       handleGetBalance(),
       handleGetAllowance(),
-    ]).then(([{ collection, metadata }, questions, balance, allowance]) => {
-      setCollection({
-        ...collection,
-        ...metadata,
-      })
-      setQuestions(questions)
-      setBalance(balance)
-      setAllowance(allowance)
-    })
+      handleGetCanAsk(id, address!),
+    ]).then(
+      ([
+        { collection, metadata },
+        questions,
+        balance,
+        allowance,
+        canAskQuestion,
+      ]) => {
+        setCollection({
+          ...collection,
+          ...metadata,
+        })
+        setQuestions(questions)
+        setBalance(balance)
+        setCanAskQuestion(canAskQuestion)
+        setQuestion(canAskQuestion)
+        setApproved(allowance >= collection.price)
+      }
+    )
   }
+
+  useEffect(() => {
+    if (!approved) {
+      setAllowanceAmount(collection?.price || 0n)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [approved])
 
   const handleGetInfo = async (id: number) => {
     const uri = await CONTRACT_MAP.KIP.uri(id)
@@ -230,37 +276,44 @@ const Detail = () => {
   }
 
   const handleGetBalance = async () => {
-    const res = await CONTRACT_MAP.KIPQuery.getBalance(address)
-    return formatUnits(res, 18)
+    return await CONTRACT_MAP.KIPQuery.getBalance(address)
   }
 
   const handleGetAllowance = async () => {
-    const res = await CONTRACT_MAP.KIPToken.allowance(address, KIPQueryAddress)
-    return formatUnits(res, 18)
+    return await CONTRACT_MAP.KIPToken.allowance(address, KIPQueryAddress)
   }
 
   const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount)
-    if (amount > parseFloat(balance)) {
+    if (amount > balance) {
       return
     }
-    console.log(config)
-    write?.()
+    withdrawWrite?.()
   }
 
   const handleApproval = async (e: React.MouseEvent) => {
     e.preventDefault()
-    console.log(approveConfig)
+    setAllowanceAmount(collection?.price || 0n)
     approveWrite?.()
   }
 
   const handleQuery = async (e: React.MouseEvent) => {
     e.preventDefault()
     queryWrite?.()
-    CONTRACT_MAP.KIPQuery.on('Query', (collectionId, questionId, queryor) => {
-      const _questionId = parseInt(questionId, 10)
+    CONTRACT_MAP.KIPQuery.on('Query', (...args) => {
+      const _questionId = parseInt(args[1], 10)
       setQuestionId(_questionId)
+      CONTRACT_MAP.KIPQuery.off('Query')
     })
+  }
+
+  const handleGetCanAsk = async (collectionId: number, queryor: string) => {
+    const [err, res] = await getCanAsk({ collectionId, queryor })
+    if (!err && res.data !== null) {
+      return res.data
+    } else {
+      return ''
+    }
   }
 
   const handleAsk = async (e: React.MouseEvent) => {
@@ -275,7 +328,7 @@ const Detail = () => {
   useEffect(() => {
     if (signature) {
       ask({
-        collectionId: collection?.id!,
+        collectionId: collection!.id,
         questionId: questionId,
         question,
         address: address!,
@@ -301,23 +354,30 @@ const Detail = () => {
   }, [])
 
   useEffect(() => {
-    if (isSuccess) {
+    if (withdrawIsSuccess) {
       window.alert('Withdraw success')
+      handleGetBalance().then((res) => {
+        setBalance(res)
+      })
       onClose()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess])
+  }, [withdrawIsSuccess])
 
   useEffect(() => {
     if (approveIsSuccess) {
       window.alert('Approve Done')
+      handleGetAllowance().then((res) => {
+        setApproved(res >= collection!.price)
+      })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [approveIsSuccess])
 
   useEffect(() => {
     if (queryIsSuccess) {
       window.alert('Query Done')
-      setHasPaid(true)
+      setPaid(true)
     }
   }, [queryIsSuccess])
 
@@ -357,10 +417,7 @@ const Detail = () => {
             <div className="kip-info__price">
               <div className="kip-label">Price per Query</div>
               <div className="kip-value">
-                $
-                {collection?.price
-                  ? formatUnits(BigInt(collection.price), 18)
-                  : 0}{' '}
+                ${collection?.price ? formatUnits(collection.price, 18) : 0}{' '}
                 USDT
               </div>
             </div>
@@ -371,25 +428,19 @@ const Detail = () => {
               placeholder="Ask me anything"
               value={question}
               onValueChange={setQuestion}
+              readOnly={!!canAskQuestion}
               endContent={
                 <>
-                  {allowance &&
-                    parseUnits(allowance, 18) <
-                      BigInt(collection?.price || '0') && (
-                      <Button
-                        color="primary"
-                        isLoading={approveIsLoading}
-                        onClick={(e) => handleApproval(e)}
-                      >
-                        Approval
-                      </Button>
-                    )}
-                  {!!(
-                    allowance &&
-                    parseUnits(allowance, 18) >
-                      BigInt(collection?.price || '0') &&
-                    !hasPaid
-                  ) && (
+                  {!approved && !canAskQuestion && (
+                    <Button
+                      color="primary"
+                      isLoading={approveIsLoading}
+                      onClick={(e) => handleApproval(e)}
+                    >
+                      Approval
+                    </Button>
+                  )}
+                  {approved && !canAskQuestion && !paid && (
                     <Button
                       color="primary"
                       isLoading={queryIsLoading}
@@ -398,7 +449,7 @@ const Detail = () => {
                       Pay
                     </Button>
                   )}
-                  {hasPaid && (
+                  {(paid || !!canAskQuestion) && (
                     <Button
                       color="primary"
                       isLoading={askIsLoading}
@@ -416,7 +467,11 @@ const Detail = () => {
             <Tabs variant="underlined">
               <Tab key="history" title="Query History">
                 {questions?.map((question) => (
-                  <QueryHistoryItem key={question.questionId} {...question} />
+                  <QueryHistoryItem
+                    key={question.questionId}
+                    {...question}
+                    onMint={() => init(parseInt(parseSearch().get('id')!, 10))}
+                  />
                 ))}
               </Tab>
             </Tabs>
@@ -429,7 +484,7 @@ const Detail = () => {
             <>
               <ModalHeader>Withdraw bonus</ModalHeader>
               <ModalBody>
-                <p>Balance: ${balance}</p>
+                <p>Balance: ${formatUnits(balance, 18)}</p>
                 <Input
                   type="number"
                   label="Amount"
@@ -445,8 +500,8 @@ const Detail = () => {
                 </Button>
                 <Button
                   color="primary"
-                  disabled={parseFloat(withdrawAmount) > parseFloat(balance)}
-                  isLoading={isLoading}
+                  disabled={parseUnits(withdrawAmount || '0', 18) > balance}
+                  isLoading={withdrawIsLoading}
                   onPress={handleWithdraw}
                 >
                   Withdraw

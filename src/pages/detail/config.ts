@@ -55,3 +55,29 @@ export const queryABI = [
     outputs: [],
   },
 ]
+
+export const mintABI = [
+  {
+    name: 'mint',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      {
+        name: 'questionId',
+        internalType: 'uint256',
+        type: 'uint256',
+      },
+      {
+        name: 'to',
+        internalType: 'address',
+        type: 'address',
+      },
+      {
+        name: 'uri',
+        internalType: 'string',
+        type: 'string',
+      },
+    ],
+    outputs: [],
+  },
+]

@@ -8,7 +8,7 @@ const KIPQueryABI = [
   'function query(uint256,string) external',
   'function getCategoryCollections(uint8) external view returns(tuple(uint256,address,uint256,uint256,uint256,uint8,uint32,uint32)[])',
   'function getCollection(uint256) external view returns(tuple(uint256,address,uint256,uint256,uint256,uint8,uint32,uint32))',
-  'function getQuestions(uint256) external view returns(tuple(uint256,uint256,string,address,address,uint256)[])',
+  'function getQuestions(uint256) external view returns(tuple(uint256,uint256,string,address,address,uint256,bool)[])',
   'function getQuestionQueryor(uint256,uint256) external view returns(address)',
   'function getBalance(address) external view returns(uint256)',
   'function mint(address,uint256,string) external',

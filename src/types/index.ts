@@ -67,6 +67,12 @@ type GetURIRequest = {
 }
 type GetURIResponse = string
 
+type GetAnswerURIRequest = {
+  name: string
+}
+
+type GetAnswerURIResponse = string
+
 type CreateCollectionRequest = {
   collectionId: number
   cover: string
@@ -79,7 +85,6 @@ type GetCollectionsCoverResponse = {
 }
 
 type GetAnswerRequest = {
-  collectionId: number
   questionId: number
   address: string
   message: string
@@ -89,10 +94,18 @@ type GetAnswerRequest = {
 type GetAnswerResponse = string
 
 type AskRequest = GetAnswerRequest & {
+  collectionId: number
   question: string
 }
 
 type AskResponse = string
+
+type GetCanAskRequest = {
+  collectionId: number
+  queryor: string
+}
+
+type GetCanAskResponse = string
 
 export { categories }
 
@@ -103,10 +116,14 @@ export type {
   UploadRequest,
   GetURIRequest,
   GetURIResponse,
+  GetAnswerURIRequest,
+  GetAnswerURIResponse,
   CreateCollectionRequest,
   GetCollectionsCoverResponse,
   GetAnswerRequest,
   GetAnswerResponse,
   AskRequest,
   AskResponse,
+  GetCanAskRequest,
+  GetCanAskResponse,
 }

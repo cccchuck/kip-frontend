@@ -14,7 +14,7 @@ export type Collection = {
   id: number
   creator: string
   supply: number
-  price: number
+  price: bigint
   royalty: number
   category: number
   queryCount: number
@@ -26,7 +26,7 @@ export const buildCollection = (collection: CollectionTuple): Collection => {
     id: parseInt(collection[0].toString(), 10),
     creator: collection[1],
     supply: parseInt(collection[2].toString(), 10),
-    price: parseInt(collection[3].toString(), 10),
+    price: BigInt(collection[3]),
     royalty: parseInt(collection[4].toString(), 10),
     category: parseInt(collection[5].toString(), 10),
     queryCount: parseInt(collection[6].toString(), 10),
@@ -34,7 +34,15 @@ export const buildCollection = (collection: CollectionTuple): Collection => {
   }
 }
 
-export type QuestionTuple = [bigint, bigint, string, string, string, bigint]
+export type QuestionTuple = [
+  bigint,
+  bigint,
+  string,
+  string,
+  string,
+  bigint,
+  boolean
+]
 
 export type Question = {
   id: number
@@ -43,6 +51,7 @@ export type Question = {
   queryor: string
   owner: string
   time: number
+  isMint: boolean
 }
 
 export const buildQueryHistory = (question: QuestionTuple): Question => {
@@ -53,6 +62,7 @@ export const buildQueryHistory = (question: QuestionTuple): Question => {
     queryor: question[3],
     owner: question[4],
     time: parseInt(question[5].toString(), 10),
+    isMint: question[6],
   }
 }
 

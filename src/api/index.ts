@@ -5,6 +5,10 @@ import {
   CreateCollectionRequest,
   GetAnswerRequest,
   GetAnswerResponse,
+  GetAnswerURIRequest,
+  GetAnswerURIResponse,
+  GetCanAskRequest,
+  GetCanAskResponse,
   GetCollectionsCoverResponse,
   GetURIRequest,
   GetURIResponse,
@@ -27,6 +31,7 @@ const uploadFile = async (file: File) => {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 20 * 1000,
     }
   )
 }
@@ -41,6 +46,7 @@ const uploadCover = async (file: File) => {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 20 * 1000,
     }
   )
 }
@@ -48,6 +54,13 @@ const uploadCover = async (file: File) => {
 const getURI = async (data: GetURIRequest) => {
   return await request.post<BaseResponse<GetURIResponse>>(
     '/collection/getURI',
+    data
+  )
+}
+
+const getAnswerURI = async (data: GetAnswerURIRequest) => {
+  return await request.post<BaseResponse<GetAnswerURIResponse>>(
+    '/collection/getAnswerURI',
     data
   )
 }
@@ -79,12 +92,21 @@ const getAnswer = async (data: GetAnswerRequest) => {
   )
 }
 
+const getCanAsk = async (data: GetCanAskRequest) => {
+  return await request.post<BaseResponse<GetCanAskResponse>>(
+    '/query/getCanAsk',
+    data
+  )
+}
+
 export {
   uploadFile,
   uploadCover,
   getURI,
+  getAnswerURI,
   createCollection,
   getCollectionsCover,
   ask,
   getAnswer,
+  getCanAsk,
 }

@@ -21,6 +21,7 @@ import {
 } from 'wagmi'
 import { KIPAddress } from '@/config'
 import { CONTRACT_MAP } from '@/web3'
+import { useNavigate } from 'react-router-dom'
 
 const Create = () => {
   const { address } = useAccount()
@@ -28,6 +29,7 @@ const Create = () => {
 
   useEffect(() => {
     switchNetwork?.(11155111)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const [name, setName] = useState('')
@@ -43,6 +45,8 @@ const Create = () => {
   const [URI, setURI] = useState('')
 
   const [loading, setLoading] = useState(false)
+
+  const navigate = useNavigate()
 
   const { config } = usePrepareContractWrite({
     address: KIPAddress,
@@ -93,7 +97,10 @@ const Create = () => {
           .then(([err, res]) => {
             if (!err && res) {
               setLoading(false)
-              window.alert('🎉 Create collection success!')
+              window.alert(
+                '🎉 Create collection success! ⌚️ Rough 20 minutes it will appear on EXPLORE'
+              )
+              navigate('/explore')
             }
           })
           .finally(() => {
@@ -104,12 +111,13 @@ const Create = () => {
   }
 
   const handleCreateCollection = () => {
-    console.log('CreateCollection')
+    console.log('CreateCollection: ', config.request)
+    setLoading(true)
     write?.()
     handleContractEvent()
   }
 
-  const handleGenerate = async () => {
+  const handleGenerateMetadata = async () => {
     const passed = customValidate()
     if (passed) {
       setLoading(true)
@@ -119,11 +127,9 @@ const Create = () => {
         CID,
         category: parseInt(category.values().next().value, 10),
       })
+      setLoading(false)
       if (!err && result.data) {
         setURI(result.data)
-        const args = config.request.args!
-        config.request.args = [args[0], args[1], args[2], args[3], result.data]
-        handleCreateCollection()
       } else {
         window.alert('Get URI for collection failed. Please try again.')
       }
@@ -246,9 +252,24 @@ const Create = () => {
         </div>
         <Divider className="my-10" />
         <div className="flex justify-end mb-10">
-          <Button color="primary" onClick={handleGenerate} isLoading={loading}>
-            Generate KB
-          </Button>
+          {!URI && (
+            <Button
+              color="primary"
+              onClick={handleGenerateMetadata}
+              isLoading={loading}
+            >
+              Generate Metadata
+            </Button>
+          )}
+          {!!URI && (
+            <Button
+              color="primary"
+              onClick={handleCreateCollection}
+              isLoading={loading}
+            >
+              Create NFT
+            </Button>
+          )}
         </div>
       </div>
     </div>
