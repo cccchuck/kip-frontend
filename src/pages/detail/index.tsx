@@ -239,17 +239,13 @@ const Detail = () => {
         setBalance(balance)
         setCanAskQuestion(canAskQuestion)
         setQuestion(canAskQuestion)
+        if (allowance < collection.price) {
+          setAllowanceAmount(collection.price)
+        }
         setApproved(allowance >= collection.price)
       }
     )
   }
-
-  useEffect(() => {
-    if (!approved) {
-      setAllowanceAmount(collection?.price || 0n)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [approved])
 
   const handleGetInfo = async (id: number) => {
     const uri = await CONTRACT_MAP.KIP.uri(id)
@@ -280,6 +276,7 @@ const Detail = () => {
   }
 
   const handleGetAllowance = async () => {
+    console.log(await CONTRACT_MAP.KIPToken.allowance(address, KIPQueryAddress))
     return await CONTRACT_MAP.KIPToken.allowance(address, KIPQueryAddress)
   }
 
@@ -293,7 +290,6 @@ const Detail = () => {
 
   const handleApproval = async (e: React.MouseEvent) => {
     e.preventDefault()
-    setAllowanceAmount(collection?.price || 0n)
     approveWrite?.()
   }
 

@@ -1,7 +1,7 @@
-const KIPQANFTAddress = '0xbd291aaef85c56e3834238bbe91136810a943f47'
-const KIPTokenAddress = '0xbd11fb1ff2d2e45b1e390395584dd3809069ce39'
-const KIPQueryAddress = '0xa9713214595a4dafcb87b5ac8ae25db0b1307a88'
-const KIPAddress = '0x91dbc805fe68344d9040bfa6d3bb77a0bea0d4ee'
+const KIPQANFTAddress = '0xbcd14d2f893dd99f0774ac8113e94fd6232d6bb4'
+const KIPTokenAddress = '0x6a7a7b64c8714d46fa0e143a9dd0ca861d47e217'
+const KIPQueryAddress = '0x75d9912818697ef8716c518b4c4eadd73fbd79b4'
+const KIPAddress = '0xd76e1670c9251247bc8aab52ac9c9dd911b4b5c6'
 
 const sepoliaRPC =
   'https://eth-sepolia.g.alchemy.com/v2/61_02oiFhc8CvMWwDnYsaCkNAuG7Ss8p'
